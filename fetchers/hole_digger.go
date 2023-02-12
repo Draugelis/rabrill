@@ -2,6 +2,7 @@ package fetchers
 
 import (
 	"rabrill/utils"
+	"sync"
 )
 
 type Upload struct {
@@ -18,6 +19,19 @@ type CommenterVideos struct {
 	Commenters    []Commenter `json:"commenters"`
 }
 
+func addVideos(wg *sync.WaitGroup, caid string, key string, cvids *CommenterVideos) {
+	defer wg.Done()
+	vids := GetVideoIds(caid, key)
+	if vids != nil {
+		commenter := Commenter{ChannelUrl: utils.GenChannelUrl(caid)}
+		for _, vid := range vids {
+			upload := Upload{UploadUrl: utils.GenVideoUrl(vid)}
+			commenter.Uploads = append(commenter.Uploads, upload)
+		}
+		cvids.Commenters = append(cvids.Commenters, commenter)
+	}
+}
+
 func FetchCommenterVideos(channel string, key string) CommenterVideos {
 	cid := UrlToId(channel)
 	cids := GetCommentAuthorIds(cid, key)
@@ -26,19 +40,12 @@ func FetchCommenterVideos(channel string, key string) CommenterVideos {
 	var commenterVideos CommenterVideos
 	commenterVideos.TargetChannel = channel
 
+	var wg sync.WaitGroup
 	for _, caid := range cids {
-		if caid != cid {
-			vids := GetVideoIds(caid, key)
-			if vids != nil {
-				commenter := Commenter{ChannelUrl: utils.GenChannelUrl(caid)}
-				for _, vid := range vids {
-					upload := Upload{UploadUrl: utils.GenVideoUrl(vid)}
-					commenter.Uploads = append(commenter.Uploads, upload)
-				}
-				commenterVideos.Commenters = append(commenterVideos.Commenters, commenter)
-			}
-		}
+		wg.Add(1)
+		go addVideos(&wg, caid, key, &commenterVideos)
 	}
+	wg.Wait()
 
 	return commenterVideos
 }
