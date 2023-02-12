@@ -2,21 +2,12 @@ package main
 
 import (
 	"log"
-	"net/http"
 	"os"
-	"rabrill/fetchers"
+	"rabrill/controllers"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 )
-
-func getStuff(c *gin.Context) {
-	key := os.Getenv("YT_API_KEY")
-	url := c.Query("q")
-	commenterVideos := fetchers.FetchCommenterVideos(url, key)
-
-	c.IndentedJSON(http.StatusOK, commenterVideos)
-}
 
 func main() {
 	err := godotenv.Load()
@@ -26,6 +17,6 @@ func main() {
 	}
 
 	router := gin.Default()
-	router.GET("/", getStuff)
+	router.GET("/", controllers.CommenterVideos)
 	router.Run("localhost:8585")
 }
