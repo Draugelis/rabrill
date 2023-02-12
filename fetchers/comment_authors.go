@@ -46,7 +46,7 @@ func GetCommentAuthorIds(cid string, key string) []string {
 	var comments Comments
 	var authorIds []string
 
-	for i := 0; i < 5; i++ {
+	for i := 0; i < 10; i++ {
 		url := fmt.Sprintf("https://youtube.googleapis.com/youtube/v3/commentThreads?maxResults=100&part=snippet&allThreadsRelatedToChannelId=%s&key=%s&pageToken=%s", cid, key, comments.NextPageToken)
 		comments = getComments(url, key)
 		for _, comment := range comments.Items {
