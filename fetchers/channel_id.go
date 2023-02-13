@@ -1,9 +1,8 @@
 package fetchers
 
 import (
-	"log"
+	"fmt"
 	"net/http"
-	"os"
 
 	"golang.org/x/net/html"
 )
@@ -22,16 +21,21 @@ func parseChannelId(n *html.Node, id *string) {
 	}
 }
 
-func UrlToId(url string) string {
-	resp, _ := http.Get(url)
+func UrlToId(url string) (string, error) {
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode > 299 {
+		return "", fmt.Errorf("Failed to get channel ID; %v", resp.StatusCode)
+	}
 	doc, err := html.Parse(resp.Body)
 	if err != nil {
-		log.Fatal(err)
-		os.Exit(1)
+		return "", err
 	}
 
 	var id string
 	parseChannelId(doc, &id)
 
-	return id
+	return id, nil
 }

@@ -2,8 +2,6 @@ package fetchers
 
 import (
 	"fmt"
-	"log"
-	"os"
 	"rabrill/utils"
 )
 
@@ -25,28 +23,34 @@ type Playlist struct {
 	} `json:"items"`
 }
 
-func GetVideoIds(channelId string, key string) []string {
-	return getUploads(getChannelPlaylist(channelId, key), key)
+func GetVideoIds(channelId string, key string) ([]string, error) {
+	pid, err := getChannelPlaylist(channelId, key)
+	if err != nil {
+		return nil, err
+	}
+	vids, err := getUploads(pid, key)
+	if err != nil {
+		return nil, err
+	}
+	return vids, nil
 }
 
-func getChannelPlaylist(cid string, key string) string {
+func getChannelPlaylist(cid string, key string) (string, error) {
 	url := fmt.Sprintf("https://youtube.googleapis.com/youtube/v3/channels?part=contentDetails&id=%s&key=%s", cid, key)
 	var channel Channel
 	err := utils.MakeRequest(url, &channel)
 	if err != nil {
-		log.Fatal(err)
-		os.Exit(1)
+		return "", err
 	}
-	return channel.Items[0].ContentDetails.RelatedPlaylist.Uploads
+	return channel.Items[0].ContentDetails.RelatedPlaylist.Uploads, nil
 }
 
-func getUploads(pid string, key string) []string {
+func getUploads(pid string, key string) ([]string, error) {
 	url := fmt.Sprintf("https://youtube.googleapis.com/youtube/v3/playlistItems?maxResults=50&part=contentDetails&playlistId=%s&key=%s", pid, key)
 	var playlist Playlist
 	err := utils.MakeRequest(url, &playlist)
 	if err != nil {
-		log.Fatal(err)
-		os.Exit(1)
+		return nil, err
 	}
 
 	var videoIds []string
@@ -54,5 +58,5 @@ func getUploads(pid string, key string) []string {
 		videoIds = append(videoIds, video.ContentDetails.VideoId)
 	}
 
-	return videoIds
+	return videoIds, nil
 }

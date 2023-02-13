@@ -21,7 +21,7 @@ type CommenterVideos struct {
 
 func addVideos(wg *sync.WaitGroup, caid string, key string, cvids *CommenterVideos) {
 	defer wg.Done()
-	vids := GetVideoIds(caid, key)
+	vids, _ := GetVideoIds(caid, key)
 	if vids != nil {
 		commenter := Commenter{ChannelUrl: utils.GenChannelUrl(caid)}
 		for _, vid := range vids {
@@ -32,12 +32,16 @@ func addVideos(wg *sync.WaitGroup, caid string, key string, cvids *CommenterVide
 	}
 }
 
-func FetchCommenterVideos(channel string, key string) CommenterVideos {
-	cid := UrlToId(channel)
+func FetchCommenterVideos(channel string, key string) (CommenterVideos, error) {
+	var commenterVideos CommenterVideos
+
+	cid, err := UrlToId(channel)
+	if err != nil {
+		return commenterVideos, err
+	}
 	cids := GetCommentAuthorIds(cid, key)
 	cids = utils.Unique(cids)
 
-	var commenterVideos CommenterVideos
 	commenterVideos.TargetChannel = channel
 
 	var wg sync.WaitGroup
@@ -47,5 +51,5 @@ func FetchCommenterVideos(channel string, key string) CommenterVideos {
 	}
 	wg.Wait()
 
-	return commenterVideos
+	return commenterVideos, nil
 }
