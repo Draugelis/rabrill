@@ -5,13 +5,9 @@ import (
 	"sync"
 )
 
-type Upload struct {
-	UploadUrl string `json:"videoUrl"`
-}
-
 type Commenter struct {
-	ChannelUrl string   `json:"channelUrl"`
-	Uploads    []Upload `json:"uploads"`
+	ChannelUrl string  `json:"channelUrl"`
+	Uploads    []Video `json:"uploads"`
 }
 
 type CommenterVideos struct {
@@ -25,7 +21,10 @@ func addVideos(wg *sync.WaitGroup, caid string, key string, cvids *CommenterVide
 	if vids != nil {
 		commenter := Commenter{ChannelUrl: utils.GenChannelUrl(caid)}
 		for _, vid := range vids {
-			upload := Upload{UploadUrl: utils.GenVideoUrl(vid)}
+			upload, err := GetVideoDetails(vid, key)
+			if err != nil {
+				continue // ¯\_(ツ)_/¯
+			}
 			commenter.Uploads = append(commenter.Uploads, upload)
 		}
 		cvids.Commenters = append(cvids.Commenters, commenter)
