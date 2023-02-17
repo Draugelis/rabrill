@@ -61,4 +61,12 @@ func TestGetVideoDetails(t *testing.T) {
 	if res != want || err != nil {
 		t.Errorf("Failed GetVideoDetails('jNQXAC9IVRw', 'someKey'). Got: %v. Want: %v", res, want)
 	}
+
+	gock.New("https://youtube.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=errorId&key=someKey").
+		Reply(404)
+
+	_, err = GetVideoDetails("errorId", "someKey")
+	if err == nil {
+		t.Error("Failed GetVideoDetails('errorId', 'someKey'). Got: error=nil. Want: error!=nil")
+	}
 }
