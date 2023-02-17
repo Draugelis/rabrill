@@ -27,7 +27,7 @@ func UrlToId(url string) (string, error) {
 		return "", err
 	}
 	if resp.StatusCode > 299 {
-		return "", fmt.Errorf("Failed to get channel ID; %v", resp.StatusCode)
+		return "", fmt.Errorf("failed to get channel ID; %v", resp.StatusCode)
 	}
 	doc, err := html.Parse(resp.Body)
 	if err != nil {
