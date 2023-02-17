@@ -1,7 +1,7 @@
 package fetchers
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 
 	"golang.org/x/net/html"
@@ -27,7 +27,7 @@ func UrlToId(url string) (string, error) {
 		return "", err
 	}
 	if resp.StatusCode > 299 {
-		return "", fmt.Errorf("failed to get channel ID; %v", resp.StatusCode)
+		return "", errors.New("failed to get channel ID")
 	}
 	doc, err := html.Parse(resp.Body)
 	if err != nil {
@@ -36,6 +36,9 @@ func UrlToId(url string) (string, error) {
 
 	var id string
 	parseChannelId(doc, &id)
+	if id == "" {
+		return "", errors.New("failed to get channel ID")
+	}
 
 	return id, nil
 }
